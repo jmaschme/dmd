@@ -495,7 +495,7 @@ Initializer *ArrayInitializer::semantic(Scope *sc, Type *t, int needInterpret)
         dinteger_t edim = ((TypeSArray *)t)->dim->toInteger();
         if (dim > edim)
         {
-            error(loc, "array initializer has %u elements, but array length is %jd", dim, edim);
+            error(loc, "array initializer has %u elements, but array length is %lld", dim, edim);
             goto Lerr;
         }
     }
@@ -870,7 +870,7 @@ Type *ExpInitializer::inferType(Scope *sc)
     // Give error for overloaded function addresses
     if (exp->op == TOKdelegate)
     {   DelegateExp *se = (DelegateExp *)exp;
-        if (
+        if (se->hasOverloads &&
             se->func->isFuncDeclaration() &&
             !se->func->isFuncDeclaration()->isUnique())
             exp->error("cannot infer type from overloaded function symbol %s", exp->toChars());

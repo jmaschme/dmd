@@ -503,7 +503,7 @@ void AliasDeclaration::semantic(Scope *sc)
         ScopeDsymbol::multiplyDefined(0, this, overnext);
     this->inSemantic = 0;
 
-    if (errors != global.errors)
+    if (global.gag && errors != global.errors)
         type = savedtype;
     return;
 
@@ -539,7 +539,7 @@ void AliasDeclaration::semantic(Scope *sc)
             assert(global.errors);
             s = NULL;
         }
-        if (errors != global.errors)
+        if (global.gag && errors != global.errors)
         {
             type = savedtype;
             overnext = savedovernext;
@@ -977,7 +977,7 @@ Lnomatch:
         {   Parameter *arg = Parameter::getNth(tt->arguments, i);
 
             OutBuffer buf;
-            buf.printf("_%s_field_%zu", ident->toChars(), i);
+            buf.printf("_%s_field_%llu", ident->toChars(), (ulonglong)i);
             buf.writeByte(0);
             const char *name = (const char *)buf.extractData();
             Identifier *id = Lexer::idPool(name);
@@ -1127,7 +1127,7 @@ Lnomatch:
         {
             if (func->fes)
                 func = func->fes->func;
-            if (!func->type->hasWild())
+            if (!((TypeFunction *)func->type)->iswild)
             {
                 error("inout variables can only be declared inside inout functions");
             }

@@ -1,6 +1,6 @@
 
 // Compiler implementation of the D programming language
-// Copyright (c) 1999-2009 by Digital Mars
+// Copyright (c) 1999-2012 by Digital Mars
 // All Rights Reserved
 // written by Walter Bright
 // http://www.digitalmars.com
@@ -77,13 +77,11 @@ Dsymbol *Import::syntaxCopy(Dsymbol *s)
 {
     assert(!s);
 
-    Import *si;
-
-    si = new Import(loc, packages, id, aliasId, isstatic);
+    Import *si = new Import(loc, packages, id, aliasId, isstatic);
 
     for (size_t i = 0; i < names.dim; i++)
     {
-        si->addAlias(names.tdata()[i], aliases.tdata()[i]);
+        si->addAlias(names[i], aliases[i]);
     }
 
     return si;
@@ -113,10 +111,13 @@ void Import::load(Scope *sc)
     {
         // Load module
         mod = Module::load(loc, packages, id);
-        dst->insert(id, mod);           // id may be different from mod->ident,
-                                        // if so then insert alias
-        if (!mod->importedFrom)
-            mod->importedFrom = sc ? sc->module->importedFrom : Module::rootModule;
+        if (mod)
+        {
+            dst->insert(id, mod);           // id may be different from mod->ident,
+                                            // if so then insert alias
+            if (!mod->importedFrom)
+                mod->importedFrom = sc ? sc->module->importedFrom : Module::rootModule;
+        }
     }
     if (!pkg)
         pkg = mod;
@@ -167,7 +168,8 @@ void Import::semantic(Scope *sc)
     // Load if not already done so
     if (!mod)
     {   load(sc);
-        mod->importAll(0);
+        if (mod)
+            mod->importAll(0);
     }
 
     if (mod)
@@ -228,7 +230,9 @@ void Import::semantic(Scope *sc)
         sc = sc->pop();
     }
 
-    if (global.params.moduleDeps != NULL)
+    if (global.params.moduleDeps != NULL &&
+        // object self-imports itself, so skip that (Bugzilla 7547)
+        !(id == Id::object && sc->module->ident == Id::object))
     {
         /* The grammar of the file is:
          *      ImportDeclaration
@@ -259,7 +263,7 @@ void Import::semantic(Scope *sc)
         {
             for (size_t i = 0; i < packages->dim; i++)
             {
-                Identifier *pid = packages->tdata()[i];
+                Identifier *pid = (*packages)[i];
                 ob->printf("%s.", pid->toChars());
             }
         }
@@ -279,8 +283,8 @@ void Import::semantic(Scope *sc)
             else
                 ob->writebyte(',');
 
-            Identifier *name = names.tdata()[i];
-            Identifier *alias = aliases.tdata()[i];
+            Identifier *name = names[i];
+            Identifier *alias = aliases[i];
 
             if (!alias)
             {
@@ -367,8 +371,15 @@ Dsymbol *Import::search(Loc loc, Identifier *ident, int flags)
 
 int Import::overloadInsert(Dsymbol *s)
 {
-    // Allow multiple imports of the same name
-    return s->isImport() != NULL;
+    /* Allow multiple imports with the same package base, but disallow
+     * alias collisions (Bugzilla 5412).
+     */
+    assert(ident && ident == s->ident);
+    Import *imp;
+    if (!aliasId && (imp = s->isImport()) != NULL && !imp->aliasId)
+        return TRUE;
+    else
+        return FALSE;
 }
 
 void Import::toCBuffer(OutBuffer *buf, HdrGenState *hgs)
