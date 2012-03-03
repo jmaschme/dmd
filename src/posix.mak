@@ -29,7 +29,7 @@ C=backend
 TK=tk
 ROOT=root
 
-MODEL=32
+MODEL=64
 
 ifeq (OSX,$(TARGET))
     ## See: http://developer.apple.com/documentation/developertools/conceptual/cross_development/Using/chapter_3_section_2.html#//apple_ref/doc/uid/20002000-1114311-BABGCAAB
@@ -57,8 +57,8 @@ CC=$(HOST_CC) -m$(MODEL) $(TARGET_CFLAGS)
 
 WARNINGS=-Wno-deprecated -Wstrict-aliasing
 
-#GFLAGS = $(WARNINGS) -D__near= -D__pascal= -fno-exceptions -g -DDEBUG=1 -DUNITTEST $(COV)
-GFLAGS = $(WARNINGS) -D__near= -D__pascal= -fno-exceptions -O2
+GFLAGS = $(WARNINGS) -D__near= -D__pascal= -fno-exceptions -g -DDEBUG=1 -DUNITTEST $(COV)
+#GFLAGS = $(WARNINGS) -D__near= -D__pascal= -fno-exceptions -O2
 
 CFLAGS = $(GFLAGS) -I$(ROOT) -DMARS=1 -DTARGET_$(TARGET)=1
 MFLAGS = $(GFLAGS) -I$C -I$(TK) -DMARS=1 -DTARGET_$(TARGET)=1
