@@ -3872,13 +3872,15 @@ void InvariantDeclaration::toCBuffer(OutBuffer *buf, HdrGenState *hgs)
  * instances per module.
  */
 
-static Identifier *unitTestId()
+static Identifier *unitTestId(Identifier* id)
 {
+    if (id) 
+        return id;
     return Lexer::uniqueId("__unittest");
 }
 
-UnitTestDeclaration::UnitTestDeclaration(Loc loc, Loc endloc)
-    : FuncDeclaration(loc, endloc, unitTestId(), STCundefined, NULL)
+UnitTestDeclaration::UnitTestDeclaration(Loc loc, Loc endloc, Identifier* id)
+    : FuncDeclaration(loc, endloc, unitTestId(id), STCundefined, NULL)
 {
 }
 
@@ -3887,7 +3889,7 @@ Dsymbol *UnitTestDeclaration::syntaxCopy(Dsymbol *s)
     UnitTestDeclaration *utd;
 
     assert(!s);
-    utd = new UnitTestDeclaration(loc, endloc);
+    utd = new UnitTestDeclaration(loc, endloc, NULL);
     return FuncDeclaration::syntaxCopy(utd);
 }
 

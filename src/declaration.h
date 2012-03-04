@@ -856,7 +856,7 @@ struct InvariantDeclaration : FuncDeclaration
 
 struct UnitTestDeclaration : FuncDeclaration
 {
-    UnitTestDeclaration(Loc loc, Loc endloc);
+    UnitTestDeclaration(Loc loc, Loc endloc, Identifier* id);
     Dsymbol *syntaxCopy(Dsymbol *);
     void semantic(Scope *sc);
     AggregateDeclaration *isThis();

@@ -1198,6 +1198,8 @@ InvariantDeclaration *Parser::parseInvariant()
 /*****************************************
  * Parse a unittest definition:
  *      unittest { body }
+ * or
+ *      unittest(identifier) { body }
  * Current token is 'unittest'.
  */
 
@@ -1206,12 +1208,24 @@ UnitTestDeclaration *Parser::parseUnitTest()
     UnitTestDeclaration *f;
     Statement *body;
     Loc loc = this->loc;
+    Identifier* id = NULL;
 
     nextToken();
+    if (token.value == TOKlparen)
+    {
+        nextToken();
+        id = token.ident;
+        check(TOKidentifier);
+        char* name = (char*)malloc(strlen(id->string)+12);
+        strcpy(name, "__unittest_");
+        strcat(name, id->string);
+        id->string = name;
+        check(TOKrparen);
+    }
 
     body = parseStatement(PScurly);
 
-    f = new UnitTestDeclaration(loc, this->loc);
+    f = new UnitTestDeclaration(loc, this->loc, id);
     f->fbody = body;
     return f;
 }
